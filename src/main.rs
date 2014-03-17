@@ -7,4 +7,6 @@ fn main()
     let mut game = game::Game::new();
 
     game.run(ai::get_vec);
+
+    game.print();
 }

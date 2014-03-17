@@ -9,7 +9,9 @@ static HEIGHT : int = 4;
 pub struct Game
 {
     grid: [[int, ..WIDTH], ..HEIGHT],
-    score: int
+    score: int,
+    move_nb: int,
+    tile_max: int
 }
 
 impl Game
@@ -19,13 +21,15 @@ impl Game
         Game
         {
             grid: [[0, ..WIDTH], ..HEIGHT],
-            score: 0
+            score: 0,
+            move_nb: 0,
+            tile_max: 0
         }
     }
 
-    pub fn print(self)
+    pub fn print(&self)
     {
-        println!("Score : {}", self.score);
+        println!("Moves : {}\nScore : {}\nTile max : {}\n", self.move_nb, self.score, self.tile_max);
         for j in range(0, HEIGHT)
         {
             for i in range(0, WIDTH)
@@ -115,6 +119,10 @@ impl Game
                             self.grid[i+x*k][j+y*k] += self.grid[i+x*(k-1)][j+y*(k-1)];
                             self.score += self.grid[i+x*k][j+y*k];
                             self.grid[i+x*(k-1)][j+y*(k-1)] = 0;
+                            if self.tile_max < self.grid[i+x*k][j+y*k]
+                            {
+                                self.tile_max = self.grid[i+x*k][j+y*k];
+                            }
                         }
                     }
                 }
@@ -124,6 +132,7 @@ impl Game
 
     pub fn move(&mut self, vec: (int, int))
     {
+        self.move_nb+=1;
         self.move_global(vec);
         self.merge(vec);
         self.move_global(vec); /* Plug holes \o/ */
@@ -220,8 +229,6 @@ impl Game
 
     pub fn run(&mut self, get_vec: fn(game: &Game)->(int, int))
     {
-        let mut i = 0;
-
         self.add_random_tile();
         self.add_random_tile();
 
@@ -229,9 +236,6 @@ impl Game
         {
             self.move(get_vec(&self.clone()));
             self.add_random_tile();
-            i+=1;
         }
-
-        print!("Moves : {}\nScore : {}\n", i, self.score);
     }
 }
