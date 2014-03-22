@@ -2,6 +2,7 @@ use std::iter::range_step;
 use std::cmp::max;
 use std::num::abs;
 use rand::random;
+use std::vec_ng::Vec;
 
 static WIDTH  : int = 4;
 static HEIGHT : int = 4;
@@ -11,6 +12,7 @@ pub struct Game
     grid: [[int, ..WIDTH], ..HEIGHT],
     score: int,
     move_nb: int,
+    merged_nb: int,
     tile_max: int
 }
 
@@ -23,13 +25,15 @@ impl Game
             grid: [[0, ..WIDTH], ..HEIGHT],
             score: 0,
             move_nb: 0,
+            merged_nb: 0,
             tile_max: 0
         }
     }
 
     pub fn print(&self)
     {
-        println!("Moves : {}\nScore : {}\nTile max : {}\n", self.move_nb, self.score, self.tile_max);
+        println!("Moves : {}\nScore : {}\nMerged : {}\nTile max : {}\n",
+                 self.move_nb, self.score, self.merged_nb, self.tile_max);
         for j in range(0, HEIGHT)
         {
             for i in range(0, WIDTH)
@@ -38,6 +42,7 @@ impl Game
             }
             println!("");
         }
+        println!("\n");
     }
 
     pub fn int_to_vec(dir: int) -> (int, int) /* x, y */
@@ -94,37 +99,49 @@ impl Game
         }
     }
 
+    pub fn merge_seq(&mut self, vec: (int, int), i: int, j: int)
+    {
+        let l = self.get_lenght(vec, i, j);
+        let (x, y) = vec;
+
+        /* 0022 -> ok (min), 0002 -> lolnope */
+        if l >= 1
+        {
+            /* End of the sequence to the start+1 */
+            for k in range_step(l, 0, -2)
+            {
+                if self.grid[i+x*k][j+y*k] == self.grid[i+x*(k-1)][j+y*(k-1)]
+                {
+                    self.merged_nb+=1;
+                }
+
+                self.grid[i+x*k][j+y*k] += self.grid[i+x*(k-1)][j+y*(k-1)];
+                self.score += self.grid[i+x*k][j+y*k];
+                self.grid[i+x*(k-1)][j+y*(k-1)] = 0;
+
+                if self.tile_max < self.grid[i+x*k][j+y*k]
+                {
+                    self.tile_max = self.grid[i+x*k][j+y*k];
+                }
+            }
+        }
+    }
+
     pub fn merge(&mut self, vec: (int, int))
     {
         let (x, y) = vec;
 
         /* WIDTH-1 to 0 if x<0, 0 to WIDTH-1 if x>=0 */
-        let mut w = if x < 0 {range_step(WIDTH-1, -1, -1)} else {range_step(0, WIDTH, 1)};
+        let mut w = if x >= 0 {range_step(WIDTH-1, -1, -1)} else {range_step(0, WIDTH, 1)};
         for i in w
         {
             /* HEIGHT-1 to 0 if x<0, 0 to HEIGHT-1 if x>=0 */
-            let mut h = if y < 0 {range_step(HEIGHT-1, -1, -1)} else {range_step(0, HEIGHT, 1)};
+            let mut h = if y >= 0 {range_step(HEIGHT-1, -1, -1)} else {range_step(0, HEIGHT, 1)};
             for j in h
             {
                 if i+x >= 0 && j+y >= 0 && i+x < WIDTH && j+y < HEIGHT && self.grid[i][j] != 0
                 {
-                    let l = self.get_lenght(vec, i, j);
-
-                    /* 0022 -> ok (min), 0002 -> lolnope */
-                    if l >= 1
-                    {
-                        /* end of the sequence to the start+1 */
-                        for k in range_step(l, 0, -2)
-                        {
-                            self.grid[i+x*k][j+y*k] += self.grid[i+x*(k-1)][j+y*(k-1)];
-                            self.score += self.grid[i+x*k][j+y*k];
-                            self.grid[i+x*(k-1)][j+y*(k-1)] = 0;
-                            if self.tile_max < self.grid[i+x*k][j+y*k]
-                            {
-                                self.tile_max = self.grid[i+x*k][j+y*k];
-                            }
-                        }
-                    }
+                    self.merge_seq(vec, i, j);
                 }
             }
         }
@@ -173,7 +190,6 @@ impl Game
     pub fn is_moveable(self) -> bool
     {
         let mut tmp: Game;
-        let mut vec: (int, int);
 
         /* If there is at least one empty tile */
         if self.is_full() == false
@@ -185,8 +201,7 @@ impl Game
         for i in range(0, 4)
         {
             tmp = self;
-            vec = Game::int_to_vec(i);
-            tmp.move(vec);
+            tmp.move(Game::int_to_vec(i));
 
             if Game::is_moved(self, tmp) == true
             {
@@ -195,6 +210,26 @@ impl Game
         }
 
         false
+    }
+
+    pub fn list_move(self) -> Vec<int>
+    {
+        let mut tmp: Game;
+        let mut ret = Vec::new();
+
+        /* Tries to move the grid in each direction, and sees if there have been any changes */
+        for i in range(0, 4)
+        {
+            tmp = self;
+            tmp.move(Game::int_to_vec(i));
+
+            if Game::is_moved(self, tmp) == true
+            {
+                ret.push(i);
+            }
+        }
+
+        ret
     }
 
     pub fn add_random_tile(&mut self)
@@ -217,7 +252,7 @@ impl Game
 
         if n != 0
         {
-            let (a, b) = tmp[(abs(random::<int>())%n)];
+            let (a, b) = tmp[abs(random::<int>())%n];
             self.grid[a][b] = 2;
         }
     }
@@ -239,3 +274,4 @@ impl Game
         }
     }
 }
+
