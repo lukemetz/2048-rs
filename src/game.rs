@@ -2,7 +2,7 @@ use std::iter::range_step;
 use std::cmp::max;
 use std::num::abs;
 use rand::random;
-use std::vec_ng::Vec;
+use std::slice::with_capacity;
 
 static WIDTH  : int = 4;
 static HEIGHT : int = 4;
@@ -13,7 +13,7 @@ pub struct Game
     score: int,
     move_nb: int,
     merged_nb: int,
-    tile_max: int
+    tile_max: int,
 }
 
 impl Game
@@ -33,7 +33,8 @@ impl Game
     pub fn print(&self)
     {
         println!("Moves : {}\nScore : {}\nMerged : {}\nTile max : {}\n",
-                 self.move_nb, self.score, self.merged_nb, self.tile_max);
+                  self.move_nb, self.score, self.merged_nb, self.tile_max);
+
         for j in range(0, HEIGHT)
         {
             for i in range(0, WIDTH)
@@ -69,14 +70,15 @@ impl Game
             c+=1;
         }
 
-        c-1
+        c
     }
 
     pub fn move_global(&mut self, vec: (int, int)) /* Move without merge */
     {
         let (x, y) = vec;
 
-        for _ in range(0, max(WIDTH, HEIGHT)/2) /* "Move enough times to move everything" */
+        /* Move enough times to move everything (soooo beautiful~) */
+        for _ in range(0, max(WIDTH, HEIGHT)/2)
         {
             /* WIDTH-1 to 0 if x<0, 0 to WIDTH-1 if x>=0 */
             let mut w = if x < 0 {range_step(WIDTH-1, -1, -1)} else {range_step(0, WIDTH, 1)};
@@ -101,7 +103,7 @@ impl Game
 
     pub fn merge_seq(&mut self, vec: (int, int), i: int, j: int)
     {
-        let l = self.get_lenght(vec, i, j);
+        let l = self.get_lenght(vec, i, j) - 1;
         let (x, y) = vec;
 
         /* 0022 -> ok (min), 0002 -> lolnope */
@@ -212,10 +214,10 @@ impl Game
         false
     }
 
-    pub fn list_move(self) -> Vec<int>
+    pub fn list_move(self) -> ~[int]
     {
         let mut tmp: Game;
-        let mut ret = Vec::new();
+        let mut ret = with_capacity(4);
 
         /* Tries to move the grid in each direction, and sees if there have been any changes */
         for i in range(0, 4)
@@ -250,8 +252,10 @@ impl Game
             }
         }
 
-        if n != 0
+        /* If there is at least one empty tile */
+        if n > 0
         {
+            /* Chooses a random position and add the new tile */
             let (a, b) = tmp[abs(random::<int>())%n];
             self.grid[a][b] = 2;
         }
@@ -264,9 +268,11 @@ impl Game
 
     pub fn run(&mut self, get_vec: fn(game: &Game)->(int, int))
     {
+        /* Add 2 random tiles at start */
         self.add_random_tile();
         self.add_random_tile();
 
+        /* Play until it isn't possible to move */
         while self.is_moveable()
         {
             self.move(get_vec(&self.clone()));

@@ -1,14 +1,14 @@
 use std::num::abs;
 use rand::random;
 use game::Game;
-use std::vec_ng::Vec;
-use std::ptr::null;
 
 pub fn get_random_vec(game: &Game) -> (int, int)
 {
-    Game::int_to_vec(abs(random::<int>())%4)
+    let tmp = game.list_move();
+    Game::int_to_vec(tmp[(abs(random::<int>()) % (tmp.len() as int))])
 }
 
+/* Minimax with depht 1, I think */
 pub fn get_best_vec(game: &Game) -> (int, int)
 {
     let &mut cpy: &Game;
