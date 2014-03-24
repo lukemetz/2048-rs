@@ -2,7 +2,6 @@ use std::iter::range_step;
 use std::cmp::max;
 use std::num::abs;
 use rand::random;
-use std::slice::with_capacity;
 
 static WIDTH  : int = 4;
 static HEIGHT : int = 4;
@@ -13,7 +12,7 @@ pub struct Game
     score: int,
     move_nb: int,
     merged_nb: int,
-    tile_max: int,
+    tile_max: int
 }
 
 impl Game
@@ -26,7 +25,7 @@ impl Game
             score: 0,
             move_nb: 0,
             merged_nb: 0,
-            tile_max: 0
+            tile_max: 0,
         }
     }
 
@@ -112,6 +111,7 @@ impl Game
             /* End of the sequence to the start+1 */
             for k in range_step(l, 0, -2)
             {
+                /* If both tiles are equals */
                 if self.grid[i+x*k][j+y*k] == self.grid[i+x*(k-1)][j+y*(k-1)]
                 {
                     self.merged_nb+=1;
@@ -121,6 +121,7 @@ impl Game
                 self.score += self.grid[i+x*k][j+y*k];
                 self.grid[i+x*(k-1)][j+y*(k-1)] = 0;
 
+                /* Update the tile max, if needed */
                 if self.tile_max < self.grid[i+x*k][j+y*k]
                 {
                     self.tile_max = self.grid[i+x*k][j+y*k];
@@ -173,51 +174,10 @@ impl Game
         false
     }
 
-    pub fn is_full(self) -> bool
-    {
-        for i in range(0, WIDTH)
-        {
-            for j in range(0, HEIGHT)
-            {
-                if self.grid[i][j] == 0
-                {
-                    return false;
-                }
-            }
-        }
-
-        true
-    }
-
-    pub fn is_moveable(self) -> bool
-    {
-        let mut tmp: Game;
-
-        /* If there is at least one empty tile */
-        if self.is_full() == false
-        {
-            return true;
-        }
-
-        /* Tries to move the grid in each direction, and sees if there have been any changes */
-        for i in range(0, 4)
-        {
-            tmp = self;
-            tmp.move(Game::int_to_vec(i));
-
-            if Game::is_moved(self, tmp) == true
-            {
-                return true;
-            }
-        }
-
-        false
-    }
-
     pub fn list_move(self) -> ~[int]
     {
         let mut tmp: Game;
-        let mut ret = with_capacity(4);
+        let mut ret: ~[int] = ~[];
 
         /* Tries to move the grid in each direction, and sees if there have been any changes */
         for i in range(0, 4)
@@ -266,17 +226,20 @@ impl Game
         self
     }
 
-    pub fn run(&mut self, get_vec: fn(game: &Game)->(int, int))
+    pub fn run(&mut self, get_vec: fn(game: &Game, move: ~[int])->(int, int))
     {
         /* Add 2 random tiles at start */
         self.add_random_tile();
         self.add_random_tile();
 
+        let mut tmp = self.list_move();
+
         /* Play until it isn't possible to move */
-        while self.is_moveable()
+        while tmp.len() > 0
         {
-            self.move(get_vec(&self.clone()));
+            self.move(get_vec(&self.clone(), tmp));
             self.add_random_tile();
+            tmp = self.list_move();
         }
     }
 }

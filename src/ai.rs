@@ -2,21 +2,19 @@ use std::num::abs;
 use rand::random;
 use game::Game;
 
-pub fn get_random_vec(game: &Game) -> (int, int)
+pub fn get_random_vec(game: &Game, move: ~[int]) -> (int, int)
 {
-    let tmp = game.list_move();
-    Game::int_to_vec(tmp[(abs(random::<int>()) % (tmp.len() as int))])
+    Game::int_to_vec(move[(abs(random::<int>()) % (move.len() as int))])
 }
 
 /* Minimax with depht 1, I think */
-pub fn get_best_vec(game: &Game) -> (int, int)
+pub fn get_best_vec(game: &Game, move: ~[int]) -> (int, int)
 {
     let &mut cpy: &Game;
     let mut tab: [int, ..4] = [0, ..4];
     let mut vec_i = 0;
-    let tmp = game.list_move();
 
-    for &i in tmp.iter()
+    for &i in move.iter()
     {
         let (a, b, c) = (game.score, game.move_nb, game.merged_nb);
 
