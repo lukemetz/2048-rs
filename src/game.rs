@@ -8,11 +8,11 @@ static HEIGHT : int = 4;
 
 pub struct Game
 {
-    grid: [[int, ..WIDTH], ..HEIGHT],
-    score: int,
-    move_nb: int,
-    merged_nb: int,
-    tile_max: int
+    pub grid: [[int, ..WIDTH], ..HEIGHT],
+    pub score: int,
+    pub move_nb: int,
+    pub merged_nb: int,
+    pub tile_max: int
 }
 
 impl Game
