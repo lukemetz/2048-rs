@@ -1,6 +1,5 @@
 use std::iter::range_step;
 use std::cmp::max;
-use std::num::abs;
 use rand::random;
 
 static WIDTH  : int = 4;
@@ -38,7 +37,7 @@ impl Game
         {
             for i in range(0, WIDTH)
             {
-                print!("{} ", self.grid[i][j]);
+                print!("{} ", self.grid[i as uint][j as uint]);
             }
             println!("");
         }
@@ -64,7 +63,7 @@ impl Game
         let mut c = 1;
 
         while i+x*c >= 0 && j+y*c >= 0 && i+x*c < WIDTH && j+y*c < HEIGHT &&
-              self.grid[i][j] == self.grid[i+x*c][j+y*c]
+              self.grid[i as uint][j as uint] == self.grid[(i+x*c) as uint][(j+y*c) as uint]
         {
             c+=1;
         }
@@ -89,11 +88,11 @@ impl Game
                 {
                     /* If the current tile is full and the next is empty : swap */
                     if i+x >= 0 && j+y >= 0 && i+x < WIDTH && j+y < HEIGHT &&
-                       self.grid[i][j] != 0 && self.grid[i+x][j+y] == 0
+                       self.grid[i as uint][j as uint] != 0 && self.grid[(i+x) as uint][(j+y) as uint] == 0
                     {
-                        let tmp = self.grid[i+x][j+y];
-                        self.grid[i+x][j+y] = self.grid[i][j];
-                        self.grid[i][j] = tmp;
+                        let tmp = self.grid[(i+x) as uint][(j+y) as uint];
+                        self.grid[(i+x) as uint][(j+y) as uint] = self.grid[i as uint][j as uint];
+                        self.grid[i as uint][j as uint] = tmp;
                     }
                 }
             }
@@ -112,19 +111,19 @@ impl Game
             for k in range_step(l, 0, -2)
             {
                 /* If both tiles are equals */
-                if self.grid[i+x*k][j+y*k] == self.grid[i+x*(k-1)][j+y*(k-1)]
+                if self.grid[(i+x*k) as uint][(j+y*k) as uint] == self.grid[(i+x*(k-1)) as uint][(j+y*(k-1)) as uint]
                 {
                     self.merged_nb+=1;
                 }
 
-                self.grid[i+x*k][j+y*k] += self.grid[i+x*(k-1)][j+y*(k-1)];
-                self.score += self.grid[i+x*k][j+y*k];
-                self.grid[i+x*(k-1)][j+y*(k-1)] = 0;
+                self.grid[(i+x*k) as uint][(j+y*k) as uint] += self.grid[(i+x*(k-1)) as uint][(j+y*(k-1)) as uint];
+                self.score += self.grid[(i+x*k) as uint][(j+y*k) as uint];
+                self.grid[(i+x*(k-1)) as uint][(j+y*(k-1)) as uint] = 0;
 
                 /* Update the tile max, if needed */
-                if self.tile_max < self.grid[i+x*k][j+y*k]
+                if self.tile_max < self.grid[(i+x*k) as uint][(j+y*k) as uint]
                 {
-                    self.tile_max = self.grid[i+x*k][j+y*k];
+                    self.tile_max = self.grid[(i+x*k) as uint][(j+y*k) as uint];
                 }
             }
         }
@@ -142,7 +141,7 @@ impl Game
             let mut h = if y >= 0 {range_step(HEIGHT-1, -1, -1)} else {range_step(0, HEIGHT, 1)};
             for j in h
             {
-                if i+x >= 0 && j+y >= 0 && i+x < WIDTH && j+y < HEIGHT && self.grid[i][j] != 0
+                if i+x >= 0 && j+y >= 0 && i+x < WIDTH && j+y < HEIGHT && self.grid[i as uint][j as uint] != 0
                 {
                     self.merge_seq(vec, i, j);
                 }
@@ -164,7 +163,7 @@ impl Game
         {
             for j in range(0, HEIGHT)
             {
-                if g1.grid[i][j] != g2.grid[i][j]
+                if g1.grid[i as uint][j as uint] != g2.grid[i as uint][j as uint]
                 {
                     return true;
                 }
@@ -204,7 +203,7 @@ impl Game
         {
             for j in range(0, HEIGHT)
             {
-                if self.grid[i][j] == 0
+                if self.grid[i as uint][j as uint] == 0
                 {
                     tmp[n] = (i, j);
                     n+=1;
@@ -216,8 +215,8 @@ impl Game
         if n > 0
         {
             /* Chooses a random position and add the new tile */
-            let (a, b) = tmp[abs(random::<int>())%n];
-            self.grid[a][b] = 2;
+            let (a, b) = tmp[random::<uint>()%n];
+            self.grid[a as uint][b as uint] = 2;
         }
     }
 
