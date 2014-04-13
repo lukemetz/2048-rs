@@ -193,10 +193,9 @@ impl Game
         ret
     }
 
-    pub fn add_random_tile(&mut self)
+    pub fn list_tile_empty(&mut self) -> ~[(int, int)]
     {
-        let mut tmp : [(int, int), ..(WIDTH*HEIGHT)] = [(0,0), ..(WIDTH*HEIGHT)];
-        let mut n = 0;
+        let mut ret: ~[(int, int)] = ~[];
 
         /* List the position of all empty tiles */
         for i in range(0, WIDTH)
@@ -205,17 +204,23 @@ impl Game
             {
                 if self.grid[i as uint][j as uint] == 0
                 {
-                    tmp[n] = (i, j);
-                    n+=1;
+                    ret.push((i, j));
                 }
             }
         }
 
+        ret
+    }
+
+    pub fn add_random_tile(&mut self)
+    {
+        let tab = self.list_tile_empty();
+
         /* If there is at least one empty tile */
-        if n > 0
+        if tab.len() > 0
         {
             /* Chooses a random position and add the new tile */
-            let (a, b) = tmp[random::<uint>()%n];
+            let (a, b) = tab[random::<uint>()%tab.len()];
             self.grid[a as uint][b as uint] = 2;
         }
     }
@@ -239,6 +244,7 @@ impl Game
             self.move(get_vec(&self.clone(), tmp));
             self.add_random_tile();
             tmp = self.list_move();
+            self.print();
         }
     }
 }

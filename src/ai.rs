@@ -21,8 +21,7 @@ pub fn Minimax(game: &Game, move: ~[int]) -> (int, int)
         cpy = game.clone();
         cpy.move(Game::int_to_vec(i));
         cpy.add_random_tile();
-
-        val = min(&cpy, cpy.list_move(), DEPTH);
+        val = max(&cpy, cpy.list_move(), DEPTH);
 
         if val > val_max
         {
@@ -99,4 +98,3 @@ fn eval(game: &Game, move: ~[int]) -> int
 
     (game.score * game.merged_nb) / game.move_nb
 }
-
