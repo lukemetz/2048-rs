@@ -1,7 +1,7 @@
 use rand::random;
 use game::Game;
 
-static DEPTH : int = 4;
+static DEPTH : int = 7;
 static INF : int = 100000;
 
 pub fn get_random_vec(game: &Game, move: ~[int]) -> (int, int)
@@ -20,8 +20,7 @@ pub fn Minimax(game: &Game, move: ~[int]) -> (int, int)
     {
         cpy = game.clone();
         cpy.move(Game::int_to_vec(i));
-        cpy.add_random_tile();
-        val = max(&cpy, cpy.list_move(), DEPTH);
+        val = min(&cpy, cpy.list_move(), DEPTH-1);
 
         if val > val_max
         {
@@ -37,18 +36,19 @@ fn min(game: &Game, move: ~[int], depth: int) -> int
 {
     if depth == 0 || move.len() == 0
     {
-        return eval(game, move);
+        return eval(game, move.len() == 0);
     }
 
     let mut cpy: Game;
     let mut val_min = INF;
     let mut val;
+    let empty = game.clone().list_tile_empty();
 
-    for &i in move.iter()
+    for i in range(0, empty.len())
     {
+        let (a, b) = empty[i as uint];
         cpy = game.clone();
-        cpy.move(Game::int_to_vec(i));
-        cpy.add_random_tile();
+        cpy.grid[a as uint][b as uint] = 2;
 
         val = max(&cpy, cpy.list_move(), depth-1);
 
@@ -65,7 +65,7 @@ fn max(game: &Game, move: ~[int], depth: int) -> int
 {
     if depth == 0 || move.len() == 0
     {
-        return eval(game, move);
+        return eval(game, move.len() == 0);
     }
 
     let mut cpy: Game;
@@ -76,7 +76,6 @@ fn max(game: &Game, move: ~[int], depth: int) -> int
     {
         cpy = game.clone();
         cpy.move(Game::int_to_vec(i));
-        cpy.add_random_tile();
 
         val = min(&cpy, cpy.list_move(), depth-1);
 
@@ -89,9 +88,9 @@ fn max(game: &Game, move: ~[int], depth: int) -> int
     val_max
 }
 
-fn eval(game: &Game, move: ~[int]) -> int
+fn eval(game: &Game, lost: bool) -> int
 {
-    if move.len() == 0
+    if lost == true
     {
         return -INF + (game.score * game.merged_nb) / game.move_nb
     }
