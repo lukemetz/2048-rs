@@ -1,5 +1,4 @@
 use std::iter::range_step;
-use std::cmp::max;
 use rand::random;
 
 static WIDTH  : int = 4;
@@ -75,25 +74,33 @@ impl Game
     {
         let (x, y) = vec;
 
-        /* Move enough times to move everything (soooo beautiful~) */
-        for _ in range(0, max(WIDTH, HEIGHT)/2)
+        /* if x>=0 : ← | else → */
+        let mut w = if x >= 0 {range_step(WIDTH-1, -1, -1)} else {range_step(0, WIDTH, 1)};
+        for i in w
         {
-            /* WIDTH-1 to 0 if x<0, 0 to WIDTH-1 if x>=0 */
-            let mut w = if x < 0 {range_step(WIDTH-1, -1, -1)} else {range_step(0, WIDTH, 1)};
-            for i in w
+            /* if y>=0 : ↑ | else ↓ */
+            let mut h = if y >= 0 {range_step(HEIGHT-1, -1, -1)} else {range_step(0, HEIGHT, 1)};
+            for j in h
             {
-                /* HEIGHT-1 to 0 if x<0, 0 to HEIGHT-1 if x>=0 */
-                let mut h = if y < 0 {range_step(HEIGHT-1, -1, -1)} else {range_step(0, HEIGHT, 1)};
-                for j in h
+                /* If the current tile is full */
+                if self.grid[i as uint][j as uint] != 0
                 {
-                    /* If the current tile is full and the next is empty : swap */
-                    if i+x >= 0 && j+y >= 0 && i+x < WIDTH && j+y < HEIGHT &&
-                       self.grid[i as uint][j as uint] != 0 && self.grid[(i+x) as uint][(j+y) as uint] == 0
+                    let mut i2 = i;
+                    let mut j2 = j;
+
+                    /* Find the nearest full tile */
+                    while i2+x >= 0 && j2+y >= 0 && i2+x < WIDTH && j2+y < HEIGHT &&
+                          self.grid[(i2+x) as uint][(j2+y) as uint] == 0
                     {
-                        let tmp = self.grid[(i+x) as uint][(j+y) as uint];
-                        self.grid[(i+x) as uint][(j+y) as uint] = self.grid[i as uint][j as uint];
-                        self.grid[i as uint][j as uint] = tmp;
+
+                        i2 = i2 + x;
+                        j2 = j2 + y;
                     }
+
+                    /* Swap */
+                    let tmp = self.grid[i2 as uint][j2 as uint];
+                    self.grid[i2 as uint][j2 as uint] = self.grid[i as uint][j as uint];
+                    self.grid[i as uint][j as uint] = tmp;
                 }
             }
         }
@@ -133,11 +140,11 @@ impl Game
     {
         let (x, y) = vec;
 
-        /* WIDTH-1 to 0 if x<0, 0 to WIDTH-1 if x>=0 */
+        /* if x>=0 : ← | else → */
         let mut w = if x >= 0 {range_step(WIDTH-1, -1, -1)} else {range_step(0, WIDTH, 1)};
         for i in w
         {
-            /* HEIGHT-1 to 0 if x<0, 0 to HEIGHT-1 if x>=0 */
+            /* if y>=0 : ↑ | else ↓ */
             let mut h = if y >= 0 {range_step(HEIGHT-1, -1, -1)} else {range_step(0, HEIGHT, 1)};
             for j in h
             {
@@ -244,7 +251,6 @@ impl Game
             self.move(get_vec(&self.clone(), tmp));
             self.add_random_tile();
             tmp = self.list_move();
-            self.print();
         }
     }
 }

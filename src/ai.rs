@@ -1,7 +1,7 @@
 use rand::random;
 use game::Game;
 
-static DEPTH : int = 7;
+static DEPTH : int = 4;
 static INF : int = 100000;
 
 pub fn get_random_vec(game: &Game, move: ~[int]) -> (int, int)
@@ -32,6 +32,7 @@ pub fn Minimax(game: &Game, move: ~[int]) -> (int, int)
     best_move
 }
 
+/* Computer (adding tile) */
 fn min(game: &Game, move: ~[int], depth: int) -> int
 {
     if depth == 0 || move.len() == 0
@@ -61,6 +62,7 @@ fn min(game: &Game, move: ~[int], depth: int) -> int
     val_min
 }
 
+/* Player (move) */
 fn max(game: &Game, move: ~[int], depth: int) -> int
 {
     if depth == 0 || move.len() == 0
